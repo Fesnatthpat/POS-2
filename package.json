@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "bun run --bun nuxt dev",
     "generate": "nuxt generate",
-    "postinstall": "prisma generate"
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare && prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
