@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  products  Product[]
+}
+
+model Product {
+  id                Int             @id @default(autoincrement())
+  name              String
+  category          String
+  categoryId        Int?
+  price             Float
+  cost              Float
+  stock             Int             @default(0)
+  minStockThreshold Int             @default(5)
+  barcode           String?         @unique
+  sku               String?         @unique
+  image             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  Category          Category?       @relation(fields: [categoryId], references: [id])
+  movements         StockMovement[]
+}
+
+model StockMovement {
+  id            Int      @id @default(autoincrement())
+  productId     Int
+  productName   String
+  type          String
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  costAtTime    Float
+  supplier      String?
+  note          String?
+  timestamp     DateTime @default(now())
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Customer {
+  id            Int        @id @default(autoincrement())
+  name          String
+  phone         String     @unique
+  points        Int        @default(0)
+  level         String     @default("Silver")
+  joinDate      DateTime   @default(now())
+  rewardsEarned Int        @default(0)
+  orders        Order[]
+  pointLogs     PointLog[]
+}
+
+model PointLog {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  amount     Int
+  after      Int
+  note       String
+  timestamp  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id             String    @id @default(cuid())
+  items          Json
+  subtotal       Float
+  discount       Float
+  total          Float
+  totalCost      Float
+  profit         Float
+  paymentMethod  String
+  paymentSlip    String?
+  receivedAmount Float?
+  changeDue      Float?
+  notes          String?
+  status         String    @default("completed")
+  voidedAt       DateTime?
+  customerId     Int?
+  timestamp      DateTime  @default(now())
+  customer       Customer? @relation(fields: [customerId], references: [id])
+}
+
+model Staff {
+  id       Int      @id @default(autoincrement())
+  name     String
+  username String   @unique
+  password String
+  role     String   @default("Cashier")
+  status   String   @default("Active")
+  joinDate DateTime @default(now())
+}
+
+model StoreSettings {
+  id                    Int     @id @default(1)
+  name                  String  @default("Vendora POS")
+  address               String?
+  phone                 String?
+  currency              String  @default("THB")
+  taxRate               Float   @default(7)
+  includeTax            Boolean @default(true)
+  receiptNote           String?
+  loyaltyPointType      String  @default("amount")
+  loyaltyPointRate      Float   @default(20)
+  loyaltyPointThreshold Int     @default(100)
+}
