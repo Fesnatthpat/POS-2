@@ -8,7 +8,7 @@ const { settings } = useSettings()
 
 definePageMeta({
   layout: 'dashboard',
-  // middleware: [ 'feature-gate' ]
+  middleware: [ 'feature-gate' ]
 })
 
 // --- State ---
