@@ -167,8 +167,9 @@ const saveProduct = async () => {
     isModalOpen.value = false
     // Optional: add a success toast here
   } catch (err: any) {
-    console.error(err)
-    alert(err.statusMessage || 'เกิดข้อผิดพลาดในการบันทึกสินค้า')
+    console.error('Error saving product:', err)
+    const errorMsg = err.data?.statusMessage || err.statusMessage || 'เกิดข้อผิดพลาดในการบันทึกสินค้า'
+    alert(errorMsg)
   } finally {
     isSaving.value = false
   }

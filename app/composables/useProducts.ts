@@ -36,16 +36,29 @@ export const useProducts = () => {
   const loadProducts = async () => {
     isLoading.value = true
     try {
-      const data = await $fetch<Product[]>('/api/products')
-      products.value = data
+      // Load products independently
+      try {
+        const data = await $fetch<Product[]>('/api/products')
+        products.value = data
+      } catch (err) {
+        console.error('Failed to load products:', err)
+      }
       
-      const cats = await $fetch<any[]>('/api/categories')
-      categories.value = cats.map(c => c.name)
+      // Load categories independently
+      try {
+        const cats = await $fetch<any[]>('/api/categories')
+        categories.value = cats.map(c => c.name)
+      } catch (err) {
+        console.error('Failed to load categories:', err)
+      }
 
-      const movements = await $fetch<StockMovement[]>('/api/stock-movements')
-      stockMovements.value = movements
-    } catch (err) {
-      console.error('Failed to load products:', err)
+      // Load movements independently
+      try {
+        const movements = await $fetch<StockMovement[]>('/api/stock-movements')
+        stockMovements.value = movements
+      } catch (err) {
+        console.error('Failed to load movements:', err)
+      }
     } finally {
       isLoading.value = false
     }
