@@ -28,308 +28,131 @@ export interface StockMovement {
 }
 
 export const useProducts = () => {
-
   const products = ref<Product[]>([])
   const categories = ref<string[]>([])
   const stockMovements = ref<StockMovement[]>([])
   const isLoading = ref(false)
 
-  // =========================
-  // LOAD DATA
-  // =========================
   const loadProducts = async () => {
-
     isLoading.value = true
-
     try {
-
-      const [
-        productsData,
-        categoriesData,
-        movementsData
-      ] = await Promise.allSettled([
-
-        $fetch<Product[]>('/api/products'),
-
-        $fetch<any[]>('/api/categories'),
-
-        $fetch<StockMovement[]>('/api/stock-movements')
-
-      ])
-
-      // Products
-      if (productsData.status === 'fulfilled') {
-
-        products.value = productsData.value || []
-
-      } else {
-
-        console.error('LOAD PRODUCTS ERROR:', productsData.reason)
+      // Load products independently
+      try {
+        const data = await $fetch<Product[]>('/api/products')
+        products.value = data
+      } catch (err) {
+        console.error('Failed to load products:', err)
+      }
+      
+      // Load categories independently
+      try {
+        const cats = await $fetch<any[]>('/api/categories')
+        categories.value = cats.map(c => c.name)
+      } catch (err) {
+        console.error('Failed to load categories:', err)
       }
 
-      // Categories
-      if (categoriesData.status === 'fulfilled') {
-
-        categories.value = categoriesData.value.map(c => c.name)
-
-      } else {
-
-        console.error('LOAD CATEGORIES ERROR:', categoriesData.reason)
+      // Load movements independently
+      try {
+        const movements = await $fetch<StockMovement[]>('/api/stock-movements')
+        stockMovements.value = movements
+      } catch (err) {
+        console.error('Failed to load movements:', err)
       }
-
-      // Movements
-      if (movementsData.status === 'fulfilled') {
-
-        stockMovements.value = movementsData.value || []
-
-      } else {
-
-        console.error('LOAD MOVEMENTS ERROR:', movementsData.reason)
-      }
-
-    } catch (err) {
-
-      console.error('LOAD DATA ERROR:', err)
-
     } finally {
-
       isLoading.value = false
     }
   }
 
-  // =========================
-  // ADD PRODUCT
-  // =========================
   const addProduct = async (product: Omit<Product, 'id'>) => {
-
     try {
-
-      console.log('ADDING PRODUCT:', product)
-
-      const result = await $fetch<Product>('/api/products', {
-
-        method: 'POST',
-
-        body: product
-
-      })
-
-      console.log('ADD PRODUCT SUCCESS:', result)
-
+      const result = await $fetch<Product>('/api/products', { method: 'POST', body: product })
       await loadProducts()
-
       return result
-
-    } catch (err: any) {
-
-      console.error('ADD PRODUCT ERROR:', err)
-
-      // แสดง error จริงจาก server
-      const message =
-        err?.data?.statusMessage ||
-        err?.data?.message ||
-        err?.message ||
-        'Failed to add product'
-
-      throw new Error(message)
-    }
-  }
-
-  // =========================
-  // UPDATE PRODUCT
-  // =========================
-  const updateProduct = async (
-    id: number,
-    updates: Partial<Product>
-  ) => {
-
-    try {
-
-      const result = await $fetch<Product>('/api/products', {
-
-        method: 'PUT',
-
-        body: {
-          id,
-          ...updates
-        }
-
-      })
-
-      await loadProducts()
-
-      return result
-
-    } catch (err: any) {
-
-      console.error('UPDATE PRODUCT ERROR:', err)
-
+    } catch (err) {
+      console.error('Failed to add product:', err)
       throw err
     }
   }
 
-  // =========================
-  // DELETE PRODUCT
-  // =========================
-  const deleteProduct = async (id: number) => {
-
+  const updateProduct = async (id: number, updates: Partial<Product>) => {
     try {
-
-      await $fetch('/api/products', {
-
-        method: 'DELETE',
-
-        query: { id }
-
-      })
-
+      const result = await $fetch<Product>('/api/products', { method: 'PUT', body: { id, ...updates } })
       await loadProducts()
-
+      return result
     } catch (err) {
-
-      console.error('DELETE PRODUCT ERROR:', err)
+      console.error('Failed to update product:', err)
+      throw err
     }
   }
 
-  // =========================
-  // CATEGORY
-  // =========================
-  const addCategory = async (name: string) => {
-
+  const deleteProduct = async (id: number) => {
     try {
-
-      await $fetch('/api/categories', {
-
-        method: 'POST',
-
-        body: { name }
-
-      })
-
+      await $fetch(`/api/products?id=${id}`, { method: 'DELETE' })
       await loadProducts()
-
     } catch (err) {
+      console.error('Failed to delete product:', err)
+    }
+  }
 
-      console.error('ADD CATEGORY ERROR:', err)
+  const addCategory = async (name: string) => {
+    try {
+      await $fetch('/api/categories', { method: 'POST', body: { name } })
+      await loadProducts()
+    } catch (err) {
+      console.error('Failed to add category:', err)
     }
   }
 
   const removeCategory = async (name: string) => {
-
     try {
-
+      // Logic for deleting by name or getting ID first
       const cats = await $fetch<any[]>('/api/categories')
-
       const cat = cats.find(c => c.name === name)
-
-      if (!cat) return
-
-      await $fetch('/api/categories', {
-
-        method: 'DELETE',
-
-        query: {
-          id: cat.id
-        }
-
-      })
-
-      await loadProducts()
-
+      if (cat) {
+        await $fetch(`/api/categories?id=${cat.id}`, { method: 'DELETE' })
+        await loadProducts()
+      }
     } catch (err) {
-
-      console.error('REMOVE CATEGORY ERROR:', err)
+      console.error('Failed to remove category:', err)
     }
   }
 
-  // =========================
-  // STOCK
-  // =========================
-  const addStock = async (
-    productId: number,
-    quantity: number,
-    note: string = 'เติมสต็อกสินค้า',
-    supplier?: string,
-    newCost?: number
-  ) => {
-
-    const product = products.value.find(
-      p => p.id === productId
-    )
-
-    if (!product) {
-
-      throw new Error('ไม่พบสินค้า')
+  const addStock = async (productId: number, quantity: number, note: string = 'เติมสต็อกสินค้า', supplier?: string, newCost?: number) => {
+    // In DB mode, we update the product directly
+    const product = products.value.find(p => p.id === productId)
+    if (product) {
+      const updates: any = { 
+        stock: product.stock + quantity,
+        note,
+        supplier
+      }
+      if (newCost !== undefined) updates.cost = newCost
+      
+      await updateProduct(productId, updates)
     }
-
-    const updates: any = {
-
-      stock: product.stock + quantity,
-
-      note,
-
-      supplier
-    }
-
-    if (newCost !== undefined) {
-
-      updates.cost = newCost
-    }
-
-    await updateProduct(productId, updates)
   }
 
-  const stockIn = async (
-    productId: number,
-    quantity: number,
-    supplier: string,
-    cost: number,
-    note: string = ''
-  ) => {
-
-    await addStock(
-
-      productId,
-
-      quantity,
-
-      note || `รับสินค้าจาก ${supplier}`,
-
-      supplier,
-
-      cost
-    )
+  const stockIn = (productId: number, quantity: number, supplier: string, cost: number, note: string = '') => {
+    addStock(productId, quantity, note || `รับสินค้าจาก ${supplier}`, supplier, cost)
   }
 
   onMounted(() => {
-
     loadProducts()
   })
 
   return {
-
     products,
-
     categories,
-
     stockMovements,
-
     isLoading,
-
     addProduct,
-
     updateProduct,
-
     deleteProduct,
-
     addCategory,
-
     removeCategory,
-
     addStock,
-
     stockIn,
-
     refresh: loadProducts
   }
 }
