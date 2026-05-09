@@ -26,14 +26,23 @@
 
       <!-- Sidebar Footer -->
       <div class="p-4 border-t border-slate-800">
-        <div class="bg-slate-800/50 rounded-2xl p-4 flex items-center space-x-3 text-left">
-          <div
-            class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0">
-            สม</div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold text-white truncate">สมชาย ใจดี</p>
-            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">ผู้ดูแลระบบ</p>
+        <div class="bg-slate-800/50 rounded-2xl p-4 flex flex-col space-y-3 text-left">
+          <div class="flex items-center space-x-3">
+            <div
+              class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0">
+              {{ user?.name?.substring(0, 2) || 'US' }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-white truncate">{{ user?.name || 'User' }}</p>
+              <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{{ user?.role || 'Staff' }}</p>
+            </div>
           </div>
+          <button @click="logout" class="w-full py-2 bg-slate-700 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>ออกจากระบบ</span>
+          </button>
         </div>
       </div>
     </aside>
@@ -76,13 +85,22 @@
             </NuxtLink>
           </nav>
           <div class="p-4 border-t border-slate-800">
-            <div class="bg-slate-800/50 rounded-2xl p-4 flex items-center space-x-3 text-left">
-              <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white font-bold">สม
+            <div class="bg-slate-800/50 rounded-2xl p-4 flex flex-col space-y-3 text-left">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white font-bold">
+                  {{ user?.name?.substring(0, 2) || 'US' }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-bold text-white truncate">{{ user?.name || 'User' }}</p>
+                  <p class="text-[10px] text-slate-500 font-bold uppercase">{{ user?.role || 'Staff' }}</p>
+                </div>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-white truncate">สมชาย ใจดี</p>
-                <p class="text-[10px] text-slate-500 font-bold uppercase">ผู้ดูแลระบบ</p>
-              </div>
+              <button @click="logout" class="w-full py-2 bg-slate-700 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>ออกจากระบบ</span>
+              </button>
             </div>
           </div>
         </aside>
@@ -130,9 +148,15 @@
             </svg>
             <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
           </button>
-          <div
-            class="w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xs lg:text-sm font-bold shadow-lg shadow-indigo-200">
-            สม</div>
+          <div class="flex items-center space-x-3 ml-2">
+            <div class="hidden md:block text-right">
+              <p class="text-xs font-bold text-slate-900">{{ user?.name }}</p>
+              <p class="text-[10px] text-slate-500 font-medium">{{ user?.role }}</p>
+            </div>
+            <div
+              class="w-8 h-8 lg:w-10 lg:h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xs lg:text-sm font-bold shadow-lg shadow-indigo-200">
+              {{ user?.name?.substring(0, 2) || 'US' }}</div>
+          </div>
         </div>
       </header>
 

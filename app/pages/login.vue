@@ -17,12 +17,16 @@
           <p class="mt-3 text-slate-500 font-medium">กรุณากรอกข้อมูลของคุณเพื่อเข้าสู่ระบบ</p>
         </div>
 
+        <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium flex items-center">
+          <span class="mr-2">⚠️</span> {{ error }}
+        </div>
+
         <form class="space-y-6" @submit.prevent="handleLogin">
           <div>
-            <label for="email" class="block text-sm font-bold text-slate-700 mb-2">ที่อยู่อีเมล</label>
-            <input id="email" type="email" required
+            <label for="username" class="block text-sm font-bold text-slate-700 mb-2">ชื่อผู้ใช้งาน</label>
+            <input id="username" type="text" required
               class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-slate-400"
-              placeholder="name@company.com" v-model="email" />
+              placeholder="admin" v-model="username" />
           </div>
 
           <div>
@@ -43,9 +47,16 @@
             </label>
           </div>
 
-          <button type="submit"
-            class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0 transition-all">
-            เข้าสู่ระบบ
+          <button type="submit" :disabled="loading"
+            class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+            <span v-if="loading" class="flex items-center justify-center">
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              กำลังเข้าสู่ระบบ...
+            </span>
+            <span v-else>เข้าสู่ระบบ</span>
           </button>
         </form>
 
@@ -61,14 +72,16 @@
 </template>
 
 <script setup lang="ts">
-const email = ref('')
+const username = ref('')
 const password = ref('')
+const { login, loading, error } = useAuth()
 const router = useRouter()
 
-const handleLogin = () => {
-  console.log('Login attempt:', { email: email.value, password: password.value })
-  // Simulate login success and redirect
-  router.push('/dashboard')
+const handleLogin = async () => {
+  const success = await login(username.value, password.value)
+  if (success) {
+    router.push('/dashboard')
+  }
 }
 </script>
 

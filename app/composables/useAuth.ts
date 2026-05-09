@@ -1,48 +1,57 @@
-import { useState } from '#app'
+import { useState, useCookie } from '#app'
 
 export interface User {
   id: number
   name: string
+  username: string
   role: 'Admin' | 'Cashier'
 }
 
 export const useAuth = () => {
-  // Simulate current user - in a real app, this would come from an API/Token
   const user = useState<User | null>('user', () => null)
+  const loading = useState('auth-loading', () => false)
+  const error = useState<string | null>('auth-error', () => null)
+  const userCookie = useCookie<User | null>('pos_user', {
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: '/'
+  })
 
-  const login = (role: 'Admin' | 'Cashier' = 'Admin') => {
-    user.value = {
-      id: 1,
-      name: role === 'Admin' ? 'ผู้ดูแลระบบ' : 'พนักงานขาย',
-      role: role
-    }
-    if (process.client) {
-      localStorage.setItem('pos_user_role', role)
+  const login = async (username: string, password: string) => {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await $fetch<User>('/api/auth/login', {
+        method: 'POST',
+        body: { username, password }
+      })
+
+      user.value = data
+      userCookie.value = data
+      return true
+    } catch (e: any) {
+      error.value = e.data?.statusMessage || e.statusMessage || 'การเข้าสู่ระบบล้มเหลว'
+      return false
+    } finally {
+      loading.value = false
     }
   }
 
   const logout = () => {
     user.value = null
-    if (process.client) {
-      localStorage.removeItem('pos_user_role')
-    }
+    userCookie.value = null
     navigateTo('/login')
   }
 
   const initAuth = () => {
-    if (process.client) {
-      const savedRole = localStorage.getItem('pos_user_role') as 'Admin' | 'Cashier' | null
-      if (savedRole) {
-        login(savedRole)
-      } else {
-        // Default to Admin for now as it's a dev prototype
-        login('Admin')
-      }
+    if (userCookie.value) {
+      user.value = userCookie.value
     }
   }
 
   return {
     user,
+    loading,
+    error,
     login,
     logout,
     initAuth,
