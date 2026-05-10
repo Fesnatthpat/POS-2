@@ -20,13 +20,16 @@ export interface Customer {
 }
 
 export const useCustomers = () => {
+  const config = useRuntimeConfig()
+  const apiBase = config.public.apiBaseUrl
+
   const customers = ref<Customer[]>([])
   const isLoading = ref(false)
 
   const loadCustomers = async () => {
     isLoading.value = true
     try {
-      customers.value = await $fetch<Customer[]>('/api/customers')
+      customers.value = await $fetch<Customer[]>(`${apiBase}/customers`)
     } catch (err) {
       console.error('Failed to load customers:', err)
     } finally {
@@ -36,7 +39,7 @@ export const useCustomers = () => {
 
   const addCustomer = async (customer: any) => {
     try {
-      await $fetch('/api/customers', { method: 'POST', body: customer })
+      await $fetch(`${apiBase}/customers`, { method: 'POST', body: customer })
       await loadCustomers()
     } catch (err) {
       console.error('Failed to add customer:', err)
@@ -45,7 +48,7 @@ export const useCustomers = () => {
 
   const updateCustomer = async (id: number, updates: Partial<Customer>) => {
     try {
-      await $fetch('/api/customers', { method: 'PUT', body: { id, ...updates } })
+      await $fetch(`${apiBase}/customers/${id}`, { method: 'PUT', body: updates })
       await loadCustomers()
     } catch (err) {
       console.error('Failed to update customer:', err)
@@ -54,7 +57,7 @@ export const useCustomers = () => {
 
   const deleteCustomer = async (id: number) => {
     try {
-      await $fetch(`/api/customers?id=${id}`, { method: 'DELETE' })
+      await $fetch(`${apiBase}/customers/${id}`, { method: 'DELETE' })
       await loadCustomers()
     } catch (err) {
       console.error('Failed to delete customer:', err)
@@ -63,7 +66,7 @@ export const useCustomers = () => {
 
   const redeemReward = async (id: number, pointsToDeduct: number) => {
     try {
-      await $fetch('/api/customers', { 
+      await $fetch(`${apiBase}/customers`, { 
         method: 'PUT', 
         body: { id, points: pointsToDeduct, action: 'redeem' } 
       })

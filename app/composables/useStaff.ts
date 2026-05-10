@@ -11,13 +11,16 @@ export interface Staff {
 }
 
 export const useStaff = () => {
+  const config = useRuntimeConfig()
+  const apiBase = config.public.apiBaseUrl
+
   const staffMembers = ref<Staff[]>([])
   const isLoading = ref(false)
 
   const loadStaff = async () => {
     isLoading.value = true
     try {
-      staffMembers.value = await $fetch<Staff[]>('/api/staff')
+      staffMembers.value = await $fetch<Staff[]>(`${apiBase}/staff`)
     } catch (err) {
       console.error('Failed to load staff:', err)
     } finally {
@@ -27,7 +30,7 @@ export const useStaff = () => {
 
   const addStaff = async (staff: any) => {
     try {
-      await $fetch('/api/staff', { method: 'POST', body: staff })
+      await $fetch(`${apiBase}/staff`, { method: 'POST', body: staff })
       await loadStaff()
     } catch (err) {
       console.error('Failed to add staff:', err)
@@ -36,7 +39,7 @@ export const useStaff = () => {
 
   const updateStaff = async (id: number, updates: Partial<Staff>) => {
     try {
-      await $fetch('/api/staff', { method: 'PUT', body: { id, ...updates } })
+      await $fetch(`${apiBase}/staff/${id}`, { method: 'PUT', body: updates })
       await loadStaff()
     } catch (err) {
       console.error('Failed to update staff:', err)
@@ -45,7 +48,7 @@ export const useStaff = () => {
 
   const deleteStaff = async (id: number) => {
     try {
-      await $fetch(`/api/staff?id=${id}`, { method: 'DELETE' })
+      await $fetch(`${apiBase}/staff/${id}`, { method: 'DELETE' })
       await loadStaff()
     } catch (err) {
       console.error('Failed to delete staff:', err)

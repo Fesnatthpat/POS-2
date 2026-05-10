@@ -21,6 +21,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
+      apiBaseUrl: 'https://api-vendora.onrender.com/api',
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseKey: process.env.SUPABASE_KEY,
     }

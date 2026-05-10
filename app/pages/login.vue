@@ -21,6 +21,10 @@
           <span class="mr-2">⚠️</span> {{ error }}
         </div>
 
+        <div v-if="successMsg" class="mb-6 p-4 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-xl text-sm font-medium flex items-center">
+          <span class="mr-2">✅</span> {{ successMsg }}
+        </div>
+
         <form class="space-y-6" @submit.prevent="handleLogin">
           <div>
             <label for="username" class="block text-sm font-bold text-slate-700 mb-2">ชื่อผู้ใช้งาน</label>
@@ -74,13 +78,18 @@
 <script setup lang="ts">
 const username = ref('')
 const password = ref('')
+const successMsg = ref('')
 const { login, loading, error } = useAuth()
-const router = useRouter()
 
 const handleLogin = async () => {
+  successMsg.value = ''
   const success = await login(username.value, password.value)
   if (success) {
-    router.push('/dashboard')
+    successMsg.value = 'เข้าสู่ระบบสำเร็จ! กำลังนำคุณไปที่หน้าหลัก...'
+    // ใช้ window.location.href เพื่อความแน่นอนในการโหลดสถานะใหม่
+    setTimeout(() => {
+      window.location.href = '/dashboard'
+    }, 500)
   }
 }
 </script>

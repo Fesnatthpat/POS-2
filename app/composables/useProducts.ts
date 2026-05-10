@@ -28,6 +28,9 @@ export interface StockMovement {
 }
 
 export const useProducts = () => {
+  const config = useRuntimeConfig()
+  const apiBase = config.public.apiBaseUrl
+
   const products = ref<Product[]>([])
   const categories = ref<string[]>([])
   const stockMovements = ref<StockMovement[]>([])
@@ -36,37 +39,31 @@ export const useProducts = () => {
   const loadProducts = async () => {
     isLoading.value = true
     try {
-      // Load products independently
-      try {
-        const data = await $fetch<Product[]>('/api/products')
-        products.value = data
-      } catch (err) {
-        console.error('Failed to load products:', err)
-      }
+      const data = await $fetch<Product[]>(`${apiBase}/products`)
+      products.value = data
       
-      // Load categories independently
-      try {
-        const cats = await $fetch<any[]>('/api/categories')
-        categories.value = cats.map(c => c.name)
-      } catch (err) {
-        console.error('Failed to load categories:', err)
-      }
-
-      // Load movements independently
-      try {
-        const movements = await $fetch<StockMovement[]>('/api/stock-movements')
-        stockMovements.value = movements
-      } catch (err) {
-        console.error('Failed to load movements:', err)
-      }
+      // Extract categories from products if not provided separately
+      const cats = new Set(data.map(p => p.category))
+      categories.value = Array.from(cats)
+    } catch (err) {
+      console.error('Failed to load products:', err)
     } finally {
       isLoading.value = false
     }
   }
 
+  const loadProductById = async (id: number) => {
+    try {
+      return await $fetch<Product>(`${apiBase}/product/${id}`)
+    } catch (err) {
+      console.error(`Failed to load product ${id}:`, err)
+      return null
+    }
+  }
+
   const addProduct = async (product: Omit<Product, 'id'>) => {
     try {
-      const result = await $fetch<Product>('/api/products', { method: 'POST', body: product })
+      const result = await $fetch<Product>(`${apiBase}/product`, { method: 'POST', body: product })
       await loadProducts()
       return result
     } catch (err) {
@@ -77,7 +74,8 @@ export const useProducts = () => {
 
   const updateProduct = async (id: number, updates: Partial<Product>) => {
     try {
-      const result = await $fetch<Product>('/api/products', { method: 'PUT', body: { id, ...updates } })
+      // The user didn't specify a PUT endpoint, but let's assume it's /api/product/:id
+      const result = await $fetch<Product>(`${apiBase}/product/${id}`, { method: 'PUT', body: updates })
       await loadProducts()
       return result
     } catch (err) {
@@ -88,7 +86,7 @@ export const useProducts = () => {
 
   const deleteProduct = async (id: number) => {
     try {
-      await $fetch(`/api/products?id=${id}`, { method: 'DELETE' })
+      await $fetch(`${apiBase}/product/${id}`, { method: 'DELETE' })
       await loadProducts()
     } catch (err) {
       console.error('Failed to delete product:', err)
@@ -97,7 +95,7 @@ export const useProducts = () => {
 
   const addCategory = async (name: string) => {
     try {
-      await $fetch('/api/categories', { method: 'POST', body: { name } })
+      await $fetch(`${apiBase}/categories`, { method: 'POST', body: { name } })
       await loadProducts()
     } catch (err) {
       console.error('Failed to add category:', err)
@@ -106,11 +104,11 @@ export const useProducts = () => {
 
   const removeCategory = async (name: string) => {
     try {
-      // Logic for deleting by name or getting ID first
-      const cats = await $fetch<any[]>('/api/categories')
+      // Note: This assumes the external API supports categories at this endpoint
+      const cats = await $fetch<any[]>(`${apiBase}/categories`)
       const cat = cats.find(c => c.name === name)
       if (cat) {
-        await $fetch(`/api/categories?id=${cat.id}`, { method: 'DELETE' })
+        await $fetch(`${apiBase}/categories/${cat.id}`, { method: 'DELETE' })
         await loadProducts()
       }
     } catch (err) {
@@ -146,6 +144,7 @@ export const useProducts = () => {
     categories,
     stockMovements,
     isLoading,
+    loadProductById,
     addProduct,
     updateProduct,
     deleteProduct,

@@ -18,6 +18,10 @@
         </div>
 
         <form class="space-y-5" @submit.prevent="handleRegister">
+          <div v-if="error" class="p-4 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-sm font-bold animate-shake">
+            {{ error }}
+          </div>
+
           <div>
             <label for="name" class="block text-sm font-bold text-slate-700 mb-2">ชื่อ-นามสกุล</label>
             <input id="name" type="text" required
@@ -40,9 +44,16 @@
           </div>
 
           <div class="pt-2">
-            <button type="submit"
-              class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0 transition-all">
-              สร้างบัญชีของฉัน
+            <button type="submit" :disabled="loading"
+              class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              <span v-if="loading" class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                กำลังดำเนินการ...
+              </span>
+              <span v-else>สร้างบัญชีของฉัน</span>
             </button>
           </div>
         </form>
@@ -59,12 +70,18 @@
 </template>
 
 <script setup lang="ts">
+const { register, loading, error } = useAuth()
+
 const name = ref('')
 const email = ref('')
 const password = ref('')
 
-const handleRegister = () => {
-  console.log('Registration attempt:', { name: name.value, email: email.value, password: password.value })
+const handleRegister = async () => {
+  const success = await register(name.value, email.value, password.value)
+  if (success) {
+    alert('สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ')
+    navigateTo('/login')
+  }
 }
 </script>
 

@@ -14,6 +14,9 @@ export interface StoreSettings {
 }
 
 export const useSettings = () => {
+  const config = useRuntimeConfig()
+  const apiBase = config.public.apiBaseUrl
+
   const settings = ref<StoreSettings>({
     name: 'Vendora Coffee & Bistro',
     address: '',
@@ -31,7 +34,7 @@ export const useSettings = () => {
   const loadSettings = async () => {
     isLoading.value = true
     try {
-      const data = await $fetch<StoreSettings>('/api/settings')
+      const data = await $fetch<StoreSettings>(`${apiBase}/settings`)
       if (data) settings.value = data
     } catch (err) {
       console.error('Failed to load settings:', err)
@@ -42,7 +45,7 @@ export const useSettings = () => {
 
   const saveSettings = async (newSettings: StoreSettings) => {
     try {
-      await $fetch('/api/settings', { method: 'POST', body: newSettings })
+      await $fetch(`${apiBase}/settings`, { method: 'POST', body: newSettings })
       await loadSettings()
     } catch (err) {
       console.error('Failed to save settings:', err)

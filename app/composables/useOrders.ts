@@ -28,6 +28,9 @@ export interface Order {
 }
 
 export const useOrders = () => {
+  const config = useRuntimeConfig()
+  const apiBase = config.public.apiBaseUrl
+
   const orders = ref<Order[]>([])
   const heldBills = ref<{ id: number, items: OrderItem[], timestamp: string, note: string }[]>([])
   const isLoading = ref(false)
@@ -35,7 +38,7 @@ export const useOrders = () => {
   const loadOrders = async () => {
     isLoading.value = true
     try {
-      orders.value = await $fetch<Order[]>('/api/orders')
+      orders.value = await $fetch<Order[]>(`${apiBase}/orders`)
       
       if (process.client) {
         const savedHeld = localStorage.getItem('pos_held_bills')
@@ -50,7 +53,7 @@ export const useOrders = () => {
 
   const addOrder = async (order: any) => {
     try {
-      const newOrder = await $fetch<Order>('/api/orders', { method: 'POST', body: order })
+      const newOrder = await $fetch<Order>(`${apiBase}/orders`, { method: 'POST', body: order })
       await loadOrders()
       return newOrder
     } catch (err) {
@@ -61,7 +64,7 @@ export const useOrders = () => {
 
   const voidOrder = async (orderId: string) => {
     try {
-      await $fetch('/api/orders', { method: 'PUT', body: { id: orderId, status: 'voided' } })
+      await $fetch(`${apiBase}/orders/${orderId}`, { method: 'PUT', body: { status: 'voided' } })
       await loadOrders()
       return true
     } catch (err) {
